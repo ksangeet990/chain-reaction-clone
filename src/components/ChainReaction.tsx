@@ -571,17 +571,48 @@ export default function ChainReaction() {
             </div>
           </div>
 
-          <Button
-            onClick={() => {
-              setRoomId(null);
-              setPlayerNumber(null);
-              setIsWaiting(false);
-              resetGame();
-            }}
-            className="px-6"
-          >
-            Leave Game
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={async () => {
+                const newBoard = Array(boardSize.rows)
+                  .fill(null)
+                  .map(() =>
+                    Array(boardSize.cols)
+                      .fill(null)
+                      .map(() => ({ count: 0, player: null }))
+                  );
+                
+                const newState = {
+                  board: newBoard,
+                  currentPlayer: 0,
+                  gameOver: false,
+                  winner: null,
+                };
+                
+                const success = await updateGameState(roomId!, newState);
+                if (!success) {
+                  console.error("Failed to reset game state");
+                }
+              }}
+              variant="outline"
+              className="px-6"
+              disabled={!gameOver || winner === null}
+            >
+              Reset Game
+            </Button>
+            
+            <Button
+              onClick={() => {
+                setRoomId(null);
+                setPlayerNumber(null);
+                setIsWaiting(false);
+                resetGame();
+              }}
+              className="px-6"
+            >
+              Leave Game
+            </Button>
+          </div>
         </>
       )}
     </div>
