@@ -253,23 +253,35 @@ export default function ChainReaction() {
   };
 
   const checkExplosion = (board: any[][], row: number, col: number) => {
-    const criticalMass = getCriticalMass(row, col);
+    // Queue to store cells that need to be checked for explosion
+    const queue: Array<{ row: number; col: number }> = [{ row, col }];
 
-    if (board[row][col].count >= criticalMass) {
-      board[row][col].count -= criticalMass;
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const criticalMass = getCriticalMass(current.row, current.col);
 
-      if (board[row][col].count === 0) {
-        board[row][col].player = null;
+      if (board[current.row][current.col].count >= criticalMass) {
+        // Reduce the count by critical mass
+        board[current.row][current.col].count -= criticalMass;
+
+        // Clear player if no atoms remain
+        if (board[current.row][current.col].count === 0) {
+          board[current.row][current.col].player = null;
+        }
+
+        // Get adjacent cells and update them
+        const adjacent = getAdjacentCells(current.row, current.col);
+
+        adjacent.forEach(({ row: adjRow, col: adjCol }) => {
+          board[adjRow][adjCol].count++;
+          board[adjRow][adjCol].player = currentPlayer;
+
+          // Add to queue only if this cell might explode
+          if (board[adjRow][adjCol].count >= getCriticalMass(adjRow, adjCol)) {
+            queue.push({ row: adjRow, col: adjCol });
+          }
+        });
       }
-
-      const adjacent = getAdjacentCells(row, col);
-
-      adjacent.forEach(({ row: adjRow, col: adjCol }) => {
-        board[adjRow][adjCol].count++;
-        board[adjRow][adjCol].player = currentPlayer;
-
-        checkExplosion(board, adjRow, adjCol);
-      });
     }
   };
 
